@@ -1,10 +1,14 @@
 package models
 
+import "github.com/google/uuid"
+
 type User struct {
-	Id      string
-	Name    string
-	Email   string
-	Picture string
+	Id         uuid.UUID `json:"id"`
+	Email      string    `json:"email"`
+	Name       string    `json:"name"`
+	Avatar     string    `json:"avatar"`
+	Provider   string    `json:"provider"`
+	ProviderID string    `json:"provider_id"`
 }
 
 type ExchangeTokenRequest struct {
