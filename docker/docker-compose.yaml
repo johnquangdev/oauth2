@@ -1,0 +1,26 @@
+version: "3.9"  
+services:
+  db_postgres:
+    container_name: postgres
+    image: postgres:14-alpine3.21
+    environment:
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASSWORD}
+      POSTGRES_DB: ${DBNAME}
+    ports:
+      - ${DBPORT}:5432
+    volumes:
+      - ./tmp/postgres:/var/lib/postgres/data
+  cache_redis:
+    image: redis:8.0.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - ${REDISPORT}:6379
+    volumes: 
+      - ./tmp/redis:/usr/local/etc/redis/redis.conf
+    environment:
+      REDIS_PASSWORD: ${REDISPASSWORD}
+volumes:
+  cache:
+    driver: local 
