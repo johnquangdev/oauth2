@@ -21,9 +21,9 @@ func NewAuth(db *gorm.DB) interfaces.Auth {
 	}
 }
 
-func (r repository) GetUserByEmail(email string) (*models.User, error) {
+func (r repository) GetUserByUserId(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.Where(&models.User{Email: email}).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(&models.User{ID: id}).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -38,18 +38,17 @@ func (r repository) CreateSesion(session *models.Session) error {
 }
 
 func (r repository) BlockedUserByUserID(ctx context.Context, userID uuid.UUID) error {
-	var s *models.Session
+	var s *models.User
 	result := r.db.WithContext(ctx).Model(&s).
-		Where("user_id=?", userID).
+		Where("id=?", userID).
 		Updates(map[string]interface{}{
-			"status":        "blocked",
-			"refresh_token": "",
+			"status": "blocked",
 		})
 	if result.Error != nil {
-		return fmt.Errorf("failed to block session: %w", result.Error)
+		return fmt.Errorf("failed to blocked user: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("no active session found with provided token")
+		return fmt.Errorf("user does not exist")
 	}
 	return nil
 }

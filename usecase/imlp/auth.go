@@ -25,6 +25,12 @@ const (
 	ProviderFacebook = "facebook"
 )
 
+const (
+	StatusActive  = "active"
+	StatusBlocked = "blocked"
+	StatusBanned  = "banned"
+)
+
 type OAuthUsecase struct {
 	oauthService *google.ServiceOauthGoogle
 	oauth2       *google.Soauth2
@@ -87,6 +93,7 @@ func (uc *OAuthUsecase) CreateUser(ctx context.Context, user models.User) error 
 		ID:         user.ID,
 		Email:      user.Email,
 		Name:       user.Name,
+		Status:     models.Status(StatusActive),
 		Avatar:     user.Avatar,
 		Provider:   user.Provider,
 		ProviderID: user.ProviderID,
@@ -105,7 +112,7 @@ func (uc *OAuthUsecase) CreateSesion(ctx context.Context, session models.Session
 		AccessToken:           session.AccessToken,
 		UserAgent:             session.UserAgent,
 		IPAddress:             session.IPAddress,
-		Status:                session.Status,
+		IsBlocked:             session.IsBlocked,
 		RefreshTokenExpiresAt: session.RefreshTokenExpiresAt,
 		AccessTokenExpiresAt:  session.AccessTokenExpiresAt,
 	})
@@ -115,12 +122,13 @@ func (uc *OAuthUsecase) CreateSesion(ctx context.Context, session models.Session
 	return nil
 }
 
-func (uc *OAuthUsecase) GetUserByEmail(gmail string) (*UModels.User, error) {
-	user, err := uc.repo.Auth().GetUserByEmail(gmail)
+func (uc *OAuthUsecase) GetUserByUser(ctx context.Context, id uuid.UUID) (*UModels.User, error) {
+	user, err := uc.repo.Auth().GetUserByUserId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return &UModels.User{
+		Id:         user.ID,
 		Email:      user.Email,
 		Name:       user.Name,
 		Avatar:     user.Avatar,
@@ -128,8 +136,8 @@ func (uc *OAuthUsecase) GetUserByEmail(gmail string) (*UModels.User, error) {
 		ProviderID: user.ProviderID,
 	}, nil
 }
-func (uc *OAuthUsecase) SaveRefreshToken(useID string, token string, expires time.Duration) error {
-	uc.repo.Redis().SaveRefreshToken(useID, token, expires)
+func (uc *OAuthUsecase) AddBackList(userID uuid.UUID, token string, expires time.Duration) error {
+	uc.repo.Redis().AddBackList(userID.String(), token, expires)
 	return nil
 }
 func (uc *OAuthUsecase) GetUserInfoGoogle(accessToken string) (UModels.User, error) {
@@ -141,6 +149,7 @@ func (uc *OAuthUsecase) GetUserInfoGoogle(accessToken string) (UModels.User, err
 		Id:         uuid.New(),
 		Email:      userInfo.Email,
 		Name:       userInfo.Name,
+		Status:     string(StatusActive),
 		Avatar:     userInfo.Picture,
 		Provider:   ProviderGoogle,
 		ProviderID: userInfo.Id,

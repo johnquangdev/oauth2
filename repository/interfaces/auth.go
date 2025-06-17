@@ -9,7 +9,7 @@ import (
 )
 
 type Auth interface {
-	GetUserByEmail(string) (*models.User, error)
+	GetUserByUserId(context.Context, uuid.UUID) (*models.User, error)
 	CreateUser(*models.User) error
 	CreateSesion(*models.Session) error
 	IsUserExists(string) (bool, error)
@@ -17,9 +17,10 @@ type Auth interface {
 }
 
 type Redis interface {
-	SaveRefreshToken(userID string, token string, duration time.Duration) error
+	AddBackList(userID string, token string, duration time.Duration) error
 	GetRefreshToken(userID string) (string, error)
 	DeleteRefreshToken(userID string) error
+	IsTokenBlacklisted(tokenID uuid.UUID) (bool, error)
 }
 
 type Repo interface {

@@ -6,6 +6,7 @@ type User struct {
 	Id         uuid.UUID `json:"id"`
 	Email      string    `json:"email"`
 	Name       string    `json:"name"`
+	Status     string    `json:"status"`
 	Avatar     string    `json:"avatar"`
 	Provider   string    `json:"provider"`
 	ProviderID string    `json:"provider_id"`

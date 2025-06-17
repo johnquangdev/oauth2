@@ -29,7 +29,7 @@ type Oauth2 interface {
 
 func NewGoogleOAuthService() *ServiceOauthGoogle {
 	config := &configGoogle.Config{
-		RedirectURL:  "http://localhost:8080/v1/auth/callback",
+		RedirectURL:  "http://localhost:8080/v1/auth/google/callback",
 		ClientID:     "487291772648-olmn5125kgmujjerkru6ihjh3nrbefa4.apps.googleusercontent.com",
 		ClientSecret: "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",
 		Scopes: []string{

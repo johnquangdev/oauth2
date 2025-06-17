@@ -23,8 +23,8 @@ func (u *ImlpUseCase) Auth() (interfaces.Auth, error) {
 func NewUseCase(repo rInterfaces.Repo, db *gorm.DB, oauth2Service *google.ServiceOauthGoogle, redis *redis.Client) (interfaces.UseCase, error) {
 	return &ImlpUseCase{
 		db:            db,
-		redis:         redis,
 		oauth2Service: oauth2Service,
 		repo:          repo,
+		redis:         redis,
 	}, nil
 }

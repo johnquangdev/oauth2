@@ -6,11 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type Status string
 type User struct {
 	ID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	Email      string    `gorm:"type:text;not null;unique" json:"email"`
 	Name       string    `gorm:"type:text" json:"name"`
 	Avatar     string    `gorm:"type:text" json:"avatar"`
+	Status     Status    `gorm:"type:text; check:status IN ('active','blocked','banned')"`
 	Provider   string    `gorm:"type:text;not null" json:"provider"`    // e.g. "google"
 	ProviderID string    `gorm:"type:text;not null" json:"provider_id"` // unique user ID from provider
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
@@ -28,7 +30,7 @@ type Session struct {
 	AccessToken           string    `gorm:"type:text;not null" json:"access_Token"`
 	UserAgent             string    `gorm:"type:text" json:"user_agent"`
 	IPAddress             string    `gorm:"type:text" json:"ip_address"`
-	Status                string    `gorm:"default:active" json:"status"`
+	IsBlocked             bool      `gorm:"default:false" json:"is_blocked"`
 	RefreshTokenExpiresAt time.Time `gorm:"type:timestamptz;not null" json:"refresh_token_expires_at"`
 	AccessTokenExpiresAt  time.Time `gorm:"type:timestamptz;not null" json:"access_token_expires_at"`
 	CreatedAt             time.Time `gorm:"autoCreateTime" json:"created_at"`
