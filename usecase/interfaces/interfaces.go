@@ -15,11 +15,11 @@ type Auth interface {
 	ExchangeCodeForToken(context.Context, models.ExchangeTokenRequest) (models.OAuthResponse, error)
 	CreateUser(context.Context, rModels.User) error
 	CreateSesion(context.Context, rModels.Session) error
-	GetUserByEmail(string) (*models.User, error)
+	GetUserByUser(context.Context, uuid.UUID) (*models.User, error)
 	GetUserInfoGoogle(string) (models.User, error)
 	IsUserExists(string) error
 	Logout(context.Context, uuid.UUID) error
-	SaveRefreshToken(string, string, time.Duration) error
+	AddBackList(uuid.UUID, string, time.Duration) error
 }
 
 type UseCase interface {

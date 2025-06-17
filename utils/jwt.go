@@ -53,7 +53,6 @@ func VerifyToken(tokenStr string, secretKey string) (*myCustomClaim, error) {
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token by err: %v", err)
 	}
-
 	// Kiểm tra thời hạn
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
 		return nil, fmt.Errorf("token expiresAt")

@@ -9,11 +9,13 @@ type GetUserInfo struct {
 }
 
 type User struct {
-	Id      string `json:"id"`
-	Gmail   string `json:"gmail" validate:"omitempty"`
-	Name    string `json:"name" validate:"omitempty"`
-	Phone   string `json:"phone"`
-	Picture string `json:"picture"`
+	Id         string `json:"id"`
+	Gmail      string `json:"gmail" validate:"omitempty"`
+	Name       string `json:"name" validate:"omitempty"`
+	Phone      string `json:"phone"`
+	Picture    string `json:"picture"`
+	Provider   string `json:"provider"`
+	ProviderID string `json:"provider_id"`
 }
 
 type Logout struct {
