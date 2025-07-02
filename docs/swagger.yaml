@@ -1,0 +1,205 @@
+definitions:
+  dto.GetUserInfo:
+    properties:
+      accesstoken:
+        type: string
+    required:
+    - accesstoken
+    type: object
+  dto.User:
+    properties:
+      gmail:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      picture:
+        type: string
+      provider:
+        type: string
+      provider_id:
+        type: string
+    type: object
+  github_com_johnquangdev_oauth2_usecase_models.User:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      provider:
+        type: string
+      provider_id:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /oauth2/callback:
+    get:
+      consumes:
+      - application/json
+      description: Xử lý callback từ Google sau khi user đăng nhập
+      parameters:
+      - description: Google OAuth2 Code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Google OAuth2 Callback
+      tags:
+      - OAuth2
+  /oauth2/getme:
+    post:
+      consumes:
+      - application/json
+      description: Dùng accessToken để lấy thông tin người dùng từ Google
+      parameters:
+      - description: Access Token từ Google
+        in: body
+        name: accessToken
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetUserInfo'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get User Info from Google
+      tags:
+      - OAuth2
+  /oauth2/home:
+    get:
+      consumes:
+      - application/json
+      description: Trả về nội dung trang chính khi đăng nhập thành công
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Trang chủ sau khi đăng nhập
+      tags:
+      - OAuth2
+  /oauth2/login:
+    get:
+      consumes:
+      - application/json
+      description: Trả về URL để redirect người dùng đến trang đăng nhập của Google
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Google OAuth2 Login URL
+      tags:
+      - OAuth2
+  /v1/users/logout:
+    post:
+      consumes:
+      - application/json
+      description: Thoát phiên làm việc của người dùng
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logout người dùng
+      tags:
+      - Auth
+  /v1/users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Trả về thông tin người dùng đã xác thực qua Bearer Token (JWT)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johnquangdev_oauth2_usecase_models.User'
+        "401":
+          description: Unauthorized – Token không hợp lệ hoặc hết hạn
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Lỗi hệ thống
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy thông tin người dùng
+      tags:
+      - Auth
+  /v1/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Tạo tài khoản người dùng trong hệ thống
+      parameters:
+      - description: Thông tin người dùng
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Đăng ký người dùng mới
+      tags:
+      - Auth
+swagger: "2.0"
