@@ -38,10 +38,18 @@ func NewRegisterRouter(u interfaces.UseCase, g *echo.Group, v *validator.Validat
 	google.POST("/getme", r.handlerGetUserInfoFromGoogle)
 
 	google.GET("/home", r.handlerMain)
-	g.POST("/register", r.handlerCreateUser)
+	g.POST("/register", r.handlerRegisterUser)
 	g.POST("/logout", r.handlerLogout)
 	g.GET("/profile", r.handleGetProfile, m.JWTAuthMiddleware())
 }
+
+// @Summary Trang chủ sau khi đăng nhập
+// @Description Trả về nội dung trang chính khi đăng nhập thành công
+// @Tags OAuth2
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} string
+// @Router /oauth2/home [get]
 func (implAuth implAuth) handlerMain(c echo.Context) error {
 	htmlIndex := `<html>
 				<body>
@@ -52,6 +60,13 @@ func (implAuth implAuth) handlerMain(c echo.Context) error {
 	return c.HTML(http.StatusOK, htmlIndex)
 }
 
+// @Summary Get Google OAuth2 Login URL
+// @Description Trả về URL để redirect người dùng đến trang đăng nhập của Google
+// @Tags OAuth2
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]string
+// @Router /oauth2/login [get]
 func (u *implAuth) handlerGetAuthURL(c echo.Context) error {
 	authUseCase, err := u.useCase.Auth()
 	if err != nil {
@@ -68,6 +83,15 @@ func (u *implAuth) handlerGetAuthURL(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, loginURL)
 }
 
+// @Summary Google OAuth2 Callback
+// @Description Xử lý callback từ Google sau khi user đăng nhập
+// @Tags OAuth2
+// @Accept  json
+// @Produce  json
+// @Param code query string true "Google OAuth2 Code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /oauth2/callback [get]
 func (u *implAuth) handlerCallback(c echo.Context) error {
 	authUseCase, err := u.useCase.Auth()
 	if err != nil {
@@ -100,7 +124,16 @@ func (u *implAuth) handlerCallback(c echo.Context) error {
 	})
 }
 
-func (u *implAuth) handlerCreateUser(c echo.Context) error {
+// @Summary Đăng ký người dùng mới
+// @Description Tạo tài khoản người dùng trong hệ thống
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Param user body dto.User true "Thông tin người dùng"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /v1/users/register [post]
+func (u *implAuth) handlerRegisterUser(c echo.Context) error {
 	authUseCase, err := u.useCase.Auth()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "failed to get auth usecase")
@@ -137,6 +170,15 @@ func (u *implAuth) handlerCreateUser(c echo.Context) error {
 	})
 }
 
+// @Summary Get User Info from Google
+// @Description Dùng accessToken để lấy thông tin người dùng từ Google
+// @Tags OAuth2
+// @Accept  json
+// @Produce  json
+// @Param accessToken body map[string]string true "Access Token từ Google"
+// @Success 200 {object} dto.GetUserInfo
+// @Failure 400 {object} map[string]interface{}
+// @Router /oauth2/getme [post]
 func (u *implAuth) handlerGetUserInfoFromGoogle(c echo.Context) error {
 	// get the method from layer usecase
 	authUseCase, err := u.useCase.Auth()
@@ -222,6 +264,14 @@ func (u *implAuth) handlerGetUserInfoFromGoogle(c echo.Context) error {
 		"data token": tokenRepose,
 	})
 }
+
+// @Summary Logout người dùng
+// @Description Thoát phiên làm việc của người dùng
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]interface{}
+// @Router /v1/users/logout [post]
 func (u *implAuth) handlerLogout(c echo.Context) error {
 	// call logic useCase
 	usecase, err := u.useCase.Auth()
@@ -273,6 +323,17 @@ func (u *implAuth) handlerLogout(c echo.Context) error {
 	})
 }
 
+// GetUserProfile godoc
+// @Summary Lấy thông tin người dùng
+// @Description Trả về thông tin người dùng đã xác thực qua Bearer Token (JWT)
+// @Tags Auth
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.User
+// @Failure 401 {object} map[string]interface{} "Unauthorized – Token không hợp lệ hoặc hết hạn"
+// @Failure 500 {object} map[string]interface{} "Lỗi hệ thống"
+// @Router /v1/users/profile [get]
 func (u implAuth) handleGetProfile(c echo.Context) error {
 	usecase, err := u.useCase.Auth()
 	if err != nil {
@@ -281,27 +342,13 @@ func (u implAuth) handleGetProfile(c echo.Context) error {
 			"detail": err.Error(),
 		})
 	}
+
 	userID, ok := c.Get("claims").(uuid.UUID)
 	if !ok {
 		fmt.Println(userID)
 		return echo.NewHTTPError(http.StatusUnauthorized, "userID not found in context")
 	}
 
-	// authHeader := c.Request().Header.Get("Authorization")
-	// if !strings.HasPrefix(authHeader, "Bearer ") {
-	// 	return echo.NewHTTPError(http.StatusUnauthorized, "Missing or invalid Authorization header")
-	// }
-
-	// tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-	// claim, err := utils.VerifyToken(tokenString, u.config.SecretKey)
-	// if err != nil {
-	// 	return c.JSON(500, map[string]interface{}{
-	// 		"status":  http.StatusInternalServerError,
-	// 		"detail":  err.Error(),
-	// 		"message": "token invalid",
-	// 	})
-	// }
 	profile, err := usecase.GetUserByUser(context.Background(), userID)
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
@@ -309,6 +356,7 @@ func (u implAuth) handleGetProfile(c echo.Context) error {
 			"detail": err.Error(),
 		})
 	}
+
 	return c.JSON(200, map[string]interface{}{
 		"status": http.StatusOK,
 		"detail": "get ok",

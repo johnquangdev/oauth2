@@ -1,11 +1,21 @@
 package cmd
 
+// @title Easy Learn English API
+// @version 1.0
+// @description Backend oauth2 Golang Clean Architecture
+// @host localhost:8080
+// @BasePath /v1
+// @schemes http
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 import (
 	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/johnquangdev/oauth2/delivery"
+	_ "github.com/johnquangdev/oauth2/docs"
 	myMiddleware "github.com/johnquangdev/oauth2/middleware"
 	"github.com/johnquangdev/oauth2/repository"
 	google "github.com/johnquangdev/oauth2/service/google"
@@ -13,6 +23,7 @@ import (
 	"github.com/johnquangdev/oauth2/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func Run() {
@@ -26,6 +37,8 @@ func Run() {
 	if err != nil {
 		log.Fatalf("load config failed by err: %v", err)
 	}
+	// Swagger endpoint
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	//connect database
 	db, err := repository.ConnectPostgres(*config)
 	if err != nil {

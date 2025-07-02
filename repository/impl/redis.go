@@ -20,16 +20,16 @@ func NewRedis(RedisClient *redis.Client) interfaces.Redis {
 	}
 }
 
-func (r *Redis) AddBackList(userID string, token string, duration time.Duration) error {
-	r.RedisClient.Set(context.Background(), userID, token, duration)
-	return nil
-}
-
 func (r *Redis) GetRefreshToken(userID string) (string, error) {
 	return "", nil
 }
 
 func (r *Redis) DeleteRefreshToken(userID string) error {
+	return nil
+}
+
+func (r *Redis) AddBackList(userID string, token string, duration time.Duration) error {
+	r.RedisClient.Set(context.Background(), userID, token, duration)
 	return nil
 }
 
