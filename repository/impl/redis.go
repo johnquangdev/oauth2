@@ -28,8 +28,8 @@ func (r *Redis) DeleteRefreshToken(userID string) error {
 	return nil
 }
 
-func (r *Redis) AddBackList(userID string, token string, duration time.Duration) error {
-	r.RedisClient.Set(context.Background(), userID, token, duration)
+func (r *Redis) AddBackList(userId string, token string, duration time.Duration) error {
+	r.RedisClient.Set(context.Background(), userId, token, duration)
 	return nil
 }
 
@@ -42,4 +42,12 @@ func (r *Redis) IsTokenBlacklisted(tokenID uuid.UUID) (bool, error) {
 	}
 
 	return exists == 1, nil
+}
+
+func (r *Redis) CreateRecord(userId uuid.UUID, accessToken string, accessTokenTimeLife time.Duration) error {
+	status := r.RedisClient.Set(context.Background(), userId.String(), accessToken, accessTokenTimeLife)
+	if err := status.Err(); err != nil {
+		return fmt.Errorf("failed to create record: %v", err)
+	}
+	return nil
 }

@@ -28,23 +28,26 @@ func (m MiddlewareCustom) JWTAuthMiddleware() echo.MiddlewareFunc {
 			// Lấy Authorization header
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
-				return echo.NewHTTPError(http.StatusUnauthorized, map[string]string{
-					"error": "Authorization header is required",
+				return echo.NewHTTPError(http.StatusUnauthorized, map[string]interface{}{
+					"status": http.StatusUnauthorized,
+					"error":  "Authorization header is required",
 				})
 			}
 
 			// Kiểm tra format "Bearer <token>"
 			if !strings.HasPrefix(authHeader, "Bearer ") {
-				return echo.NewHTTPError(http.StatusUnauthorized, map[string]string{
-					"error": "Invalid authorization header format. Use 'Bearer <token>'",
+				return echo.NewHTTPError(http.StatusUnauthorized, map[string]interface{}{
+					"status": http.StatusUnauthorized,
+					"error":  "Invalid authorization header format. Use 'Bearer <token>'",
 				})
 			}
 
 			// Extract token
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 			if tokenString == "" {
-				return echo.NewHTTPError(http.StatusUnauthorized, map[string]string{
-					"error": "Token is required",
+				return echo.NewHTTPError(http.StatusUnauthorized, map[string]interface{}{
+					"status": http.StatusUnauthorized,
+					"error":  "Token is required",
 				})
 			}
 
@@ -52,6 +55,7 @@ func (m MiddlewareCustom) JWTAuthMiddleware() echo.MiddlewareFunc {
 			claims, err := utils.VerifyToken(tokenString, m.cfg.SecretKey)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"status":  http.StatusInternalServerError,
 					"detail":  err.Error(),
 					"message": "token invalid",
 				})
@@ -60,27 +64,31 @@ func (m MiddlewareCustom) JWTAuthMiddleware() echo.MiddlewareFunc {
 			// Kiểm tra token có bị blacklist không (Redis)
 			isBlacklisted, err := m.repo.Redis().IsTokenBlacklisted(claims.Id)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, map[string]string{
-					"error": "error checking token status",
+				return echo.NewHTTPError(http.StatusInternalServerError, map[string]interface{}{
+					"status": http.StatusInternalServerError,
+					"error":  "error checking token status",
 				})
 			}
 			if isBlacklisted {
-				return echo.NewHTTPError(http.StatusUnauthorized, map[string]string{
-					"error": "token is blocked",
+				return echo.NewHTTPError(http.StatusUnauthorized, map[string]interface{}{
+					"status": http.StatusUnauthorized,
+					"error":  "token is blocked",
 				})
 			}
 			// // Lấy user info từ database
 			user, err := m.repo.Auth().GetUserByUserId(context.Background(), claims.Id)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, map[string]string{
-					"error": "user not found",
+				return echo.NewHTTPError(http.StatusUnauthorized, map[string]interface{}{
+					"status": http.StatusUnauthorized,
+					"error":  "user not found",
 				})
 			}
 
 			// Kiểm tra user status
 			if user.Status != "active" {
-				return echo.NewHTTPError(http.StatusForbidden, map[string]string{
-					"error": "account is suspended",
+				return echo.NewHTTPError(http.StatusForbidden, map[string]interface{}{
+					"status": http.StatusForbidden,
+					"error":  "account not active",
 				})
 			}
 

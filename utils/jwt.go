@@ -16,21 +16,23 @@ type myCustomClaim struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id uuid.UUID, name string, gmail string, tokenTimeLife time.Duration, cfg string) string {
+// GenerateToken tạo JWT với thời gian hết hạn UTC và trả về expires_in (giây)
+func GenerateToken(id uuid.UUID, name string, gmail string, tokenTimeLife time.Duration, cfg string) (string, myCustomClaim) {
+	expiresAt := time.Now().UTC().Add(tokenTimeLife)
 	claims := myCustomClaim{
-		id,
-		name,
-		gmail,
-		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTimeLife)),
+		Id:    id,
+		Name:  name,
+		Gmail: gmail,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(cfg))
 	if err != nil {
-		return err.Error()
+		return err.Error(), myCustomClaim{}
 	}
-	return t
+	return t, claims
 }
 
 func VerifyToken(tokenStr string, secretKey string) (*myCustomClaim, error) {
