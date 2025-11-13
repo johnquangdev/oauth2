@@ -20,12 +20,10 @@ CREATE TABLE sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     refresh_token TEXT NOT NULL,
-    access_token TEXT NOT NULL,
     user_agent TEXT,
     ip_address TEXT,
     is_blocked bool DEFAULT FALSE,
     refresh_token_expires_at TIMESTAMPTZ NOT NULL,
-    access_token_expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
