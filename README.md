@@ -11,9 +11,6 @@ A lightweight OAuth2 authentication system powered by Golang (backend). Built wi
 - Easy to integrate with other services
 - Docker support for development
 
-## Flow Chart
-![alt text](image.png)
-
 ## Folder Structure
 
 ```
