@@ -1,12 +1,40 @@
+basePath: /v1
 definitions:
-  dto.GetUserInfo:
+  github_com_johnquangdev_oauth2_repository_models.User:
     properties:
-      accesstoken:
+      avatar:
         type: string
-    required:
-    - accesstoken
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      provider:
+        description: e.g. "google"
+        type: string
+      provider_id:
+        description: unique user ID from provider
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
     type: object
-  dto.User:
+  model.JwtResponse:
+    properties:
+      accessToken:
+        type: string
+      expiresAtAccessToken:
+        type: string
+      expiresAtRefreshToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  model.User:
     properties:
       gmail:
         type: string
@@ -23,62 +51,22 @@ definitions:
       provider_id:
         type: string
     type: object
-  github_com_johnquangdev_oauth2_usecase_models.User:
-    properties:
-      avatar:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      provider:
-        type: string
-      provider_id:
-        type: string
-      status:
-        type: string
-    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: Backend oauth2 Golang Clean Architecture
+  title: oauth2 Golang Clean Architecture
+  version: "1.0"
 paths:
-  /oauth2/callback:
+  /v1/auth/google/callback:
     get:
       consumes:
       - application/json
-      description: Xử lý callback từ Google sau khi user đăng nhập
+      description: Callback and create user or allow user login
       parameters:
-      - description: Google OAuth2 Code
-        in: query
-        name: code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Google OAuth2 Callback
-      tags:
-      - OAuth2
-  /oauth2/getme:
-    post:
-      consumes:
-      - application/json
-      description: Dùng accessToken để lấy thông tin người dùng từ Google
-      parameters:
-      - description: Access Token từ Google
+      - description: token từ Google
         in: body
-        name: accessToken
+        name: token
         required: true
         schema:
           additionalProperties:
@@ -90,31 +78,16 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.GetUserInfo'
+            $ref: '#/definitions/model.JwtResponse'
         "400":
           description: Bad Request
           schema:
             additionalProperties: true
             type: object
-      summary: Get User Info from Google
+      summary: Google Callback
       tags:
       - OAuth2
-  /oauth2/home:
-    get:
-      consumes:
-      - application/json
-      description: Trả về nội dung trang chính khi đăng nhập thành công
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: Trang chủ sau khi đăng nhập
-      tags:
-      - OAuth2
-  /oauth2/login:
+  /v1/auth/google/login:
     get:
       consumes:
       - application/json
@@ -128,10 +101,10 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get Google OAuth2 Login URL
+      summary: Google Login
       tags:
       - OAuth2
-  /v1/users/logout:
+  /v1/auth/logout:
     post:
       consumes:
       - application/json
@@ -147,7 +120,7 @@ paths:
       summary: Logout người dùng
       tags:
       - Auth
-  /v1/users/profile:
+  /v1/auth/profile:
     get:
       consumes:
       - application/json
@@ -158,7 +131,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_johnquangdev_oauth2_usecase_models.User'
+            $ref: '#/definitions/github_com_johnquangdev_oauth2_repository_models.User'
         "401":
           description: Unauthorized – Token không hợp lệ hoặc hết hạn
           schema:
@@ -174,7 +147,7 @@ paths:
       summary: Lấy thông tin người dùng
       tags:
       - Auth
-  /v1/users/register:
+  /v1/auth/register:
     post:
       consumes:
       - application/json
@@ -185,7 +158,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/dto.User'
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
@@ -202,4 +175,11 @@ paths:
       summary: Đăng ký người dùng mới
       tags:
       - Auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
