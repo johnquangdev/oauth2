@@ -26,7 +26,9 @@ go.work.sum
 
 # env file
 .env
+keyfile.json
 
 # Editor/IDE
 # .idea/
 .vscode/
+.DS_Store

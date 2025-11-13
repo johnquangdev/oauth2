@@ -1,4 +1,4 @@
-package dto
+package models
 
 type LoginOauth2 struct {
 	Code string `json:"code" validate:"required"`

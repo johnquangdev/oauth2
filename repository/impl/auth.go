@@ -23,7 +23,15 @@ func NewAuth(db *gorm.DB) interfaces.Auth {
 
 func (r repository) GetUserByUserId(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).Where(&models.User{ID: id}).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(&models.User{Id: id}).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r repository) GetUserByProviderAndProviderId(ctx context.Context, provider string, providerId string) (*models.User, error) {
+	var user models.User
+	if err := r.db.WithContext(ctx).Where(&models.User{Provider: provider, ProviderId: providerId}).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -33,7 +41,7 @@ func (r repository) CreateUser(user *models.User) error {
 	return r.db.Create(&user).Error
 }
 
-func (r repository) CreateSesion(session *models.Session) error {
+func (r repository) CreateSession(session *models.Session) error {
 	return r.db.Create(&session).Error
 }
 
@@ -53,7 +61,7 @@ func (r repository) BlockedUserByUserID(ctx context.Context, userID uuid.UUID) e
 	return nil
 }
 
-func (r repository) IsUserExists(email string) (bool, error) {
+func (r repository) UserExists(email string) (bool, error) {
 	var user models.User
 	err := r.db.Where("email = ?", email).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {

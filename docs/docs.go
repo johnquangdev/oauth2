@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/oauth2/callback": {
+        "/v1/auth/google/callback": {
             "get": {
-                "description": "Xử lý callback từ Google sau khi user đăng nhập",
+                "description": "Callback and create user or allow user login",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,51 +27,11 @@ const docTemplate = `{
                 "tags": [
                     "OAuth2"
                 ],
-                "summary": "Google OAuth2 Callback",
+                "summary": "Google Callback",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Google OAuth2 Code",
-                        "name": "code",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/oauth2/getme": {
-            "post": {
-                "description": "Dùng accessToken để lấy thông tin người dùng từ Google",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OAuth2"
-                ],
-                "summary": "Get User Info from Google",
-                "parameters": [
-                    {
-                        "description": "Access Token từ Google",
-                        "name": "accessToken",
+                        "description": "token từ Google",
+                        "name": "token",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -86,7 +46,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.GetUserInfo"
+                            "$ref": "#/definitions/model.JwtResponse"
                         }
                     },
                     "400": {
@@ -99,30 +59,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/oauth2/home": {
-            "get": {
-                "description": "Trả về nội dung trang chính khi đăng nhập thành công",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "OAuth2"
-                ],
-                "summary": "Trang chủ sau khi đăng nhập",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/oauth2/login": {
+        "/v1/auth/google/login": {
             "get": {
                 "description": "Trả về URL để redirect người dùng đến trang đăng nhập của Google",
                 "consumes": [
@@ -134,7 +71,7 @@ const docTemplate = `{
                 "tags": [
                     "OAuth2"
                 ],
-                "summary": "Get Google OAuth2 Login URL",
+                "summary": "Google Login",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -148,7 +85,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/logout": {
+        "/v1/auth/logout": {
             "post": {
                 "description": "Thoát phiên làm việc của người dùng",
                 "consumes": [
@@ -172,7 +109,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/profile": {
+        "/v1/auth/profile": {
             "get": {
                 "security": [
                     {
@@ -194,7 +131,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_johnquangdev_oauth2_usecase_models.User"
+                            "$ref": "#/definitions/github_com_johnquangdev_oauth2_repository_models.User"
                         }
                     },
                     "401": {
@@ -214,7 +151,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/register": {
+        "/v1/auth/register": {
             "post": {
                 "description": "Tạo tài khoản người dùng trong hệ thống",
                 "consumes": [
@@ -234,7 +171,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.User"
+                            "$ref": "#/definitions/model.User"
                         }
                     }
                 ],
@@ -258,18 +195,58 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.GetUserInfo": {
+        "github_com_johnquangdev_oauth2_repository_models.User": {
             "type": "object",
-            "required": [
-                "accesstoken"
-            ],
             "properties": {
-                "accesstoken": {
+                "avatar": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "e.g. \"google\"",
+                    "type": "string"
+                },
+                "provider_id": {
+                    "description": "unique user ID from provider",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "dto.User": {
+        "model.JwtResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "expiresAtAccessToken": {
+                    "type": "string"
+                },
+                "expiresAtRefreshToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
             "type": "object",
             "properties": {
                 "gmail": {
@@ -294,44 +271,25 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "github_com_johnquangdev_oauth2_usecase_models.User": {
-            "type": "object",
-            "properties": {
-                "avatar": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "provider": {
-                    "type": "string"
-                },
-                "provider_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/v1",
+	Schemes:          []string{"http"},
+	Title:            "oauth2 Golang Clean Architecture",
+	Description:      "Backend oauth2 Golang Clean Architecture",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
